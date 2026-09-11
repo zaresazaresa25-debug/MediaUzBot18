@@ -779,28 +779,34 @@ def health():
 @app.route("/webhook", methods=["POST"])
 def webhook():
 
-    if request.is_json:
+    try:
+        if not request.is_json:
+            print("WEBHOOK: JSON emas")
+            return "Bad Request", 400
 
-        json_string = (
-            request
-            .get_data()
-            .decode("utf-8")
-        )
+        json_string = request.get_data().decode("utf-8")
 
-        update = types.Update.de_json(
-            json_string
-        )
+        print("WEBHOOK UPDATE:", json_string)
 
-        bot.process_new_updates(
-            [update]
-        )
+        update = types.Update.de_json(json_string)
+
+        if update is None:
+            print("WEBHOOK: Update yaratilmadi")
+            return "OK", 200
+
+        bot.process_new_updates([update])
+
+        print("WEBHOOK: Update qayta ishlandi")
 
         return "OK", 200
 
-    return "Bad Request", 400
-
-
-# =========================================================
+    except Exception as error:
+        print(
+            "WEBHOOK ERROR:",
+            type(error).__name__,
+            str(error)
+        )
+        return "OK", 200 =========================================================
 # WEBHOOK SETUP
 # =========================================================
 
